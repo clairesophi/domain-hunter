@@ -545,9 +545,16 @@ def candidates_from_words(
     seed_slugs = [_to_singular(s) for s in seed_slugs if s not in BLOCKED_WORDS]
     seed_slugs = list(dict.fromkeys(seed_slugs))
 
-    partner_slugs = [slugify(w) for w in partners if slugify(w)]
-    partner_slugs = [_to_singular(p) for p in partner_slugs if p not in BLOCKED_WORDS]
-    partner_slugs = list(dict.fromkeys(p for p in partner_slugs if p and p not in seed_slugs))
+    # Partner words come from the branches the user picked seeds from. If
+    # `compounds` is OFF the user wants ONLY their explicitly-picked words —
+    # so drop the partner pool entirely. That stops "facetworks" or "facet.com"
+    # from sneaking in when the user only queued "gem".
+    if include_compounds:
+        partner_slugs = [slugify(w) for w in partners if slugify(w)]
+        partner_slugs = [_to_singular(p) for p in partner_slugs if p not in BLOCKED_WORDS]
+        partner_slugs = list(dict.fromkeys(p for p in partner_slugs if p and p not in seed_slugs))
+    else:
+        partner_slugs = []
 
     ordered: List[Tuple[str, str]] = []
     seen = set()
