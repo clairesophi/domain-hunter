@@ -200,10 +200,10 @@
 </head>
 <body>
 <div class="wrap">
-  <h1>DOMAIN HUNTER !!!</h1>
+  <h1>NAME FINDER !!!</h1>
 
   <p>
-    Type concepts, product positioning, quotes, or fragment that are interesting to you as possible names. Build a word tree from embeddings,
+    Type concepts, territories, names, or fragments. Build a word tree from embeddings,
     click words you like to add them to the queue, then check which domains are available.
   </p>
 
@@ -236,6 +236,7 @@
       <div class="controls">
         <label><input id="compoundsToggle" type="checkbox" checked> compounds (a+b)</label>
         <label><input id="studioToggle" type="checkbox" checked> +studio / +labs / +works / +atelier</label>
+        <label title="Per-branch affixes: omni/perma/ultra/meta as prefixes, scope/edge/wave/wright as suffixes. Helpful when your queue is thin."><input id="affixToggle" type="checkbox"> +omni / perma+ / +scope / +wave (thematic affixes)</label>
         <label><input id="showTaken" type="checkbox"> show taken too</label>
         <label>max <input id="maxChecks" type="number" min="5" max="80" value="40"></label>
       </div>
@@ -469,7 +470,9 @@ async function checkDomains() {
       body: JSON.stringify({
         words: [...selected.keys()],
         compoundPartners: activePartners(),
+        activeBranches: [...new Set([...selected.values()].filter(Boolean))],
         includeStudio: $("studioToggle").checked,
+        includeAffixes: $("affixToggle").checked,
         includeCompounds: $("compoundsToggle").checked,
         tlds: [...document.querySelectorAll(".tld:checked")].map(el => el.value),
         showTaken: $("showTaken").checked,
