@@ -212,6 +212,38 @@ friend host guest stranger neighbor companion fellow comrade ally
 dream memory wonder echo trace footprint hint signal beacon
 
 cup mug bowl plate dish saucer pitcher kettle teapot
+
+forefront frontier vanguard helm prow leading axon neuron dendrite synapse signal transmission broadcast channel antenna beacon pulse rhythm waveform wavelength tuning resonance frequency emission tone hum echo
+
+blade edge sword spear arrow dagger sabre point tip cutting precision sharp acuity warrior sentinel guardian scout ranger herald envoy knight forge forging
+
+clubhouse lodge hideaway retreat refuge sanctuary haven shelter den firepit camp campfire bonfire hearth fellowship fellowship guild member members company gathering circle salon supper feast
+
+ascension ascent climb summit rise momentum traction thrust drive propulsion continuum spectrum gradient arc trajectory horizon
+
+empowerment agency autonomy mastery craft mentorship guidance partnership alliance accord pact covenant trust
+
+philosophy ethos creed doctrine manifesto principle stance vision foresight insight intuition
+
+revision iteration draft refinement polish overhaul rework redo
+
+ruckus fracas tumult kerfuffle uproar commotion stir buzz
+
+ego persona guise mask alter dual mirror reflection echo
+
+disciple acolyte devotee novice apprentice fellow protege
+
+concierge steward host helmsman captain pilot navigator
+
+patch mend repair fix splice darn
+
+mascot emblem token totem banner pennant standard signet seal
+
+stillwave undercurrent ripple eddy whirlpool surge wash spray spume foam
+
+forefront tip helm prow point edge spear vanguard ascendant
+
+inner core depth marrow heart center essence kernel pith
 """.split()
 
 BRAND_PHRASES = [
@@ -226,7 +258,15 @@ BRAND_PHRASES = [
     "Caustic", "Radiance", "Ephemeral", "Liminal", "Emergent", "Ascendant", "Viable",
     "New Glue", "Roux", "Goblinworks", "Tortoiseworks", "FMRL", "LUCA",
     "Creative Advantage", "Almanac", "Keyring", "Tackle Box", "Icebox", "JigWorks",
-    "Cut to Spec", "Signal Works", "Pattern Works", "JJNC"
+    "Cut to Spec", "Signal Works", "Pattern Works", "JJNC",
+    # From the team call brief — words the team is already gravitating toward.
+    "Stillwave", "UltraHuman", "Forefront", "Axon", "Clubhouse", "Ruckus",
+    "Continuum", "Ascension", "Momentum", "Forging", "Patches", "Philosophy",
+    "Revision", "Liquid", "Disciple", "Concierge", "Quickfix", "Members Only",
+    "The Campfire", "Supper Club", "Inner Signal", "Secret Weapon",
+    "Halt and Catch Fire", "Alter Ego", "Inner Voice", "Signal to Noise",
+    "Tip of the Sword", "Leading Edge", "White Glove", "Top of the Game",
+    "First Impression", "Secret Society"
 ]
 
 PRIMARY_SUFFIXES = ["works", "studio", "labs", "lab", "studios"]
@@ -236,6 +276,34 @@ SECONDARY_SUFFIXES = [
     "society", "guild", "circle", "salon", "room", "table", "group", "co"
 ]
 SUFFIXES = PRIMARY_SUFFIXES + SECONDARY_SUFFIXES
+
+# Category-specific affixes. Used sparingly (1–2 per seed, random pick each run)
+# so brand names like "permascope" or "wildgrove" or "metaframe" surface
+# without flooding the pool.
+THEMATIC_PREFIXES = {
+    "refinery":   ["ultra", "micro", "omni", "pan"],
+    "scaffold":   ["meta", "proto", "multi", "infra"],
+    "superpower": ["omni", "hyper", "perma", "supra"],
+    "alchemy":    ["trans", "meta", "neo", "perma"],
+    "toolbox":    ["multi", "omni", "perma", "pan"],
+    "garden":     ["ever", "wild", "semi", "neo"],
+    "current":    ["perma", "omni", "super", "ultra"],
+    "signal":     ["meta", "omni", "hyper", "trans"],
+    "edge":       ["ultra", "hyper", "omni", "supra"],
+    "campfire":   ["ever", "neo", "pan", "omni"],
+}
+THEMATIC_SUFFIXES = {
+    "refinery":   ["scope", "smith", "wright"],
+    "scaffold":   ["form", "way", "side", "gate"],
+    "superpower": ["scope", "force", "edge"],
+    "alchemy":    ["scope", "blend", "flux"],
+    "toolbox":    ["smith", "wright", "shop", "kit"],
+    "garden":     ["side", "grove", "land", "plot"],
+    "current":    ["wave", "surge", "scope", "flux"],
+    "signal":     ["scope", "wave", "tone", "beacon"],
+    "edge":       ["edge", "scope", "force", "tip"],
+    "campfire":   ["house", "club", "lodge", "salon", "circle"],
+}
 
 # Words we don't want to surface in generated names — too tech-y or generic for
 # a non-AI/non-digital brand.
@@ -247,13 +315,59 @@ BLOCKED_WORDS = {
 }
 
 BRANCHES = {
-    "refinery": "refine polish lapidary stone crystal quarry foundry raw material craft precision",
-    "scaffold": "support structure framework infrastructure workflow enablement future practice",
-    "superpower": "advantage hidden capability magic leverage white glove machine hand kindling",
-    "alchemy": "connection flow translation transmission relay latent space emergent systems",
-    "toolbox": "tools toolkit almanac keyring workflow pattern cut spec production",
-    "garden": "garden grow cultivate seed sprout bloom orchard greenhouse nursery botany horticulture soil root harvest",
-    "current": "current flow energy electricity charge voltage circuit pulse wave frequency kinetic dynamo spark surge resonance"
+    "refinery": (
+        "refinery refine polish polished burnish lapidary stone crystal quarry foundry "
+        "raw material craft precision gem facet marble granite pearl alabaster basalt "
+        "distill distillation alembic crucible kiln chisel anvil mineral pigment ore"
+    ),
+    "scaffold": (
+        "scaffold structure structural framework support beam column trellis lattice "
+        "infrastructure foundation pillar plank rafter joist platform standard method "
+        "blueprint architecture bridge backbone formwork rig grid matrix"
+    ),
+    "superpower": (
+        "superpower advantage capability magic spark force kindling power lift uplift "
+        "courage might strength talent ability charisma leverage edge hidden unlock "
+        "boost charge spark ignite kindle catalyst breakthrough"
+    ),
+    "alchemy": (
+        "alchemy distill transmute infusion brew ferment tincture mordant potion "
+        "concoction blend mix transform translate connect link bridge synthesis "
+        "synapse circuit conduit relay weave glue catalyst emergent flow"
+    ),
+    "toolbox": (
+        "toolbox tool tools toolkit kit workbench bench workshop maker craft "
+        "hammer chisel awl plane saw drill brush vise clamp ruler lathe jig "
+        "handle wrench screwdriver shelf drawer cabinet stack equipment instrument "
+        "kit playbook template apparatus"
+    ),
+    "garden": (
+        "garden gardening grow growth cultivate seed seedling sprout bloom blossom "
+        "orchard greenhouse nursery botany horticulture soil root harvest dew rain "
+        "petal stamen pollen pollinate fertile compost prune trellis vine flower "
+        "hedge meadow grove arbor bouquet bud bramble"
+    ),
+    "current": (
+        "current currents flow flowing energy electricity charge voltage circuit "
+        "pulse wave frequency kinetic dynamo spark surge resonance river stream tide "
+        "ocean ripple eddy waterfall cascade thunder lightning storm wind rain "
+        "vortex whirlpool drift breeze gale tempest"
+    ),
+    "signal": (
+        "signal signals transmission broadcast channel antenna beacon frequency "
+        "wavelength tuning resonance pulse rhythm waveform tone hum emission echo "
+        "relay carrier dispatch communicate clarity inner signal undercurrent"
+    ),
+    "edge": (
+        "edge blade tip point forefront frontier vanguard helm prow leading sword "
+        "spear arrow dagger sabre weapon warrior sharp acuity precision cutting "
+        "forward first ahead pioneer scout cutting-edge"
+    ),
+    "campfire": (
+        "campfire hearth lodge club clubhouse circle gathering supper salon "
+        "fellowship guild member members retreat refuge den fire firepit log "
+        "kindling ember warmth company conversation companions secret society"
+    ),
 }
 
 
@@ -359,12 +473,12 @@ def api_tree():
             )[:17]
             main_words = {t["word"] for t in main_terms}
 
-            # (c) Wildcards: random picks from positions ~20–80 of the
-            #     branch's own ranking, skipping anything already in main.
-            #     These are "still on-theme but not the obvious top hits" —
-            #     each rebuild gets a fresh set.
+            # (c) Wildcards: random picks from the tight top of the branch's
+            #     own ranking — high enough on the list to still feel on-theme,
+            #     skipping anything already in main. Each rebuild reshuffles
+            #     so you get different on-theme surprises per click.
             wildcard_pool = [
-                t for t in all_branch_scored[15:80]
+                t for t in all_branch_scored[:35]
                 if t["word"] not in main_words
             ]
             n_wildcards = min(3, len(wildcard_pool))
@@ -431,6 +545,7 @@ def candidates_from_words(
     include_compounds: bool,
     tlds: List[str],
     max_checks: int,
+    active_branches: List[str] = None,
 ) -> List[Dict[str, str]]:
     """Generate domain candidates from seed words tethered by branch partners.
 
@@ -517,6 +632,28 @@ def candidates_from_words(
             for suf in SECONDARY_SUFFIXES:
                 if w != suf:
                     add(w + suf, f"+{suf}", [w, suf])
+
+    # 8. Thematic affixes — category-specific prefixes/suffixes used sparingly.
+    #    Pull from the categories the user has actively selected from. Picks
+    #    1–2 random affixes per seed each run so they reshuffle on Rerun.
+    branches = active_branches or []
+    pre_pool, suf_pool = [], []
+    for b in branches:
+        pre_pool.extend(THEMATIC_PREFIXES.get(b, []))
+        suf_pool.extend(THEMATIC_SUFFIXES.get(b, []))
+    pre_pool = list(dict.fromkeys(pre_pool))
+    suf_pool = list(dict.fromkeys(suf_pool))
+
+    if pre_pool:
+        for w in seed_slugs:
+            picks = random.sample(pre_pool, min(2, len(pre_pool)))
+            for pre in picks:
+                add(pre + w, f"{pre}+", [pre, w])
+    if suf_pool:
+        for w in seed_slugs:
+            picks = random.sample(suf_pool, min(2, len(suf_pool)))
+            for suf in picks:
+                add(w + suf, f"+{suf}", [w, suf])
 
     # Expand each slug into one row per TLD
     tlds = [t.lstrip(".").lower() for t in tlds if t]
@@ -644,6 +781,7 @@ def api_check():
     body = request.get_json(force=True)
     words = body.get("words", [])
     partners = body.get("compoundPartners", [])
+    active_branches = body.get("activeBranches", [])
     include_studio = bool(body.get("includeStudio", False))
     include_compounds = bool(body.get("includeCompounds", True))
     tlds = body.get("tlds") or ["com"]
@@ -666,7 +804,8 @@ def api_check():
     # to ~160 candidates → return up to 40 that are actually available.
     check_budget = min(max_checks * OVERSAMPLE_FACTOR, MAX_CHECKS_HARD_LIMIT)
     candidates = candidates_from_words(
-        words, partners, include_studio, include_compounds, tlds, check_budget
+        words, partners, include_studio, include_compounds, tlds, check_budget,
+        active_branches=active_branches,
     )
 
     if not candidates:
