@@ -103,7 +103,7 @@ chime hum drone peal knell toll melody harmony cadence refrain chant song echo w
 
 silk velvet linen suede leather wax satin gauze muslin tweed canvas burlap denim cotton wool felt twill brocade
 
-heron hawk owl raven eagle fox otter lynx fawn hare deer stag salmon trout oyster whale dolphin sparrow swan crane finch nightingale crow magpie kingfisher dove hummingbird
+heron raven nightingale kingfisher swan crane dove
 
 vessel vase urn chalice bowl basin jar jug flask vial ampoule retort kettle cauldron carafe decanter pitcher amphora ewer
 
@@ -141,77 +141,53 @@ vow oath pledge bond covenant accord pact troth banner signet seal token relic e
 
 key lock latch hinge bolt clasp buckle button stud nail rivet stitch seam
 
-trail trailhead campsite cabin cottage lodge bungalow boathouse boatyard meadow grove thicket clearing bluff knoll hill mound dune shore beach reef shoal pier dock wharf marina harbor bay gulf landing crossing junction
+trailhead boathouse marina harbor wharf landing crossing junction threshold gateway
 
-kitchen pantry larder cellar attic loft parlor study den porch deck patio veranda terrace courtyard yard backyard frontroom commonroom
+calm stillness hush serenity grace clarity balance steadiness gravity
 
-bread loaf crust crumb butter cheese jam preserve pickle relish broth soup stew brew tea infusion mead cider wine sauce marinade rind zest peel
+daybreak nightfall starlight twilight gloaming
 
-hand finger palm wrist eye gaze glance vision sight ear voice tongue tooth bone spine sinew nerve marrow
+journey trek passage compass atlas itinerary lodestar
 
-calm peace stillness quiet hush serenity grace ease comfort warmth coolness focus clarity balance steadiness gravity weight
+fire flame ember spark blaze beacon torch lantern bonfire campfire hearth kindling
 
-morning daybreak sunrise noon afternoon nightfall midnight evening sundown starlight earlybird earlymorning lateday
+anthem chant chorus refrain cadence resonance
 
-journey trek hike path route course passage crossing bridge ford pass gateway compass map atlas itinerary
+cabin lodge pavilion atelier studio gallery archive
 
-fire flame ember spark blaze candle wick lamp torch lantern firefly bonfire campfire furnace hearth oven stove
+vise lathe clamp anvil chisel awl plane forge
 
-song tune chord note rhythm beat hum echo whisper anthem chant chorus refrain ballad lullaby
+silk linen velvet brocade twill burlap canvas
 
-house home cabin cottage lodge hut tent pavilion barn stable workshop studio gallery pavilion booth kiosk
+trellis grove thicket arbor bower hedge meadow
 
-hammer chisel awl plane saw drill brush paint glue tape nail bolt rivet thread needle pin clamp ruler tape
+mist haze fog dew frost rime aurora halo
 
-wood metal clay paper cloth fabric leather rope cord twine silk wool cotton linen velvet denim hemp jute
+maker builder mender wright cooper weaver carver smith blacksmith goldsmith silversmith
 
-tree flower leaf grass bush vine root branch twig bud sprout seedling sapling thicket undergrowth
+retreat summit residency salon symposium council
 
-sun rain snow wind hail cloud thunder lightning rainbow shower drizzle puddle pond
+ballad stanza manuscript verse essay almanac codex
 
-fox owl raven hawk hare deer stag salmon trout bee butterfly moth wren swallow lark robin warbler
+scholar tutor mentor master apprentice journeyman fellow guild society circle
 
-bottle jar box crate barrel basket pouch satchel pack pouch knapsack rucksack tote duffel
+overture prelude finale ensemble orchestra
 
-sail row paddle drift float glide soar dive leap jump climb hike walk wander roam stroll amble ramble
+quest puzzle riddle mystery clue beacon
 
-glow gleam shine sparkle luster shimmer brightness warmth coolness clarity vibrancy
+scent aroma savor sense
 
-maker builder mender tinker cooper smith weaver carver potter wright wheelwright shipwright blacksmith goldsmith silversmith
+uplift focus clarity balance harmony radiance vitality
 
-market bazaar fair festival gathering parade picnic retreat summit assembly meetup workshop residency
+oak elm ash maple birch cedar willow rowan hazel
 
-chapter page tale story fable legend myth ballad sonnet stanza verse poem essay manuscript
+honey spice mint sage rosemary lavender
 
-school class lesson study scholar tutor mentor master apprentice journeyman protege fellow
+silver gold bronze brass iron steel pewter
 
-orchestra choir band ensemble quintet quartet trio duet solo overture prelude finale
+stream brook river tide wave current undercurrent ripple eddy whirlpool cascade
 
-game play sport race match contest quest puzzle riddle mystery clue trail breadcrumb hint
-
-scent aroma flavor savor touch caress sense feeling impression
-
-lift uplift focus clarity balance harmony radiance vitality
-
-dawn morning twilight evening dusk sundown sunset
-
-oak elm ash maple birch fir spruce pine cedar willow hawthorn hazel rowan
-
-salt sugar honey spice pepper ginger mint sage thyme basil rosemary lavender chamomile
-
-silver gold bronze brass iron tin steel pewter
-
-stream brook river creek pond lake bay shore tide wave
-
-cloud mist haze fog dew frost rime sleet
-
-home garden workshop atelier studio library archive gallery museum theatre
-
-friend host guest stranger neighbor companion fellow comrade ally
-
-dream memory wonder echo trace footprint hint signal beacon
-
-cup mug bowl plate dish saucer pitcher kettle teapot
+dream memory wonder echo trace signal beacon resonance
 
 forefront frontier vanguard helm prow leading axon neuron dendrite synapse signal transmission broadcast channel antenna beacon pulse rhythm waveform wavelength tuning resonance frequency emission tone hum echo
 
@@ -219,7 +195,7 @@ blade edge sword spear arrow dagger sabre point tip cutting precision sharp acui
 
 clubhouse lodge hideaway retreat refuge sanctuary haven shelter den firepit camp campfire bonfire hearth fellowship fellowship guild member members company gathering circle salon supper feast
 
-ascension ascent climb summit rise momentum traction thrust drive propulsion continuum spectrum gradient arc trajectory horizon
+ascension ascent summit momentum traction thrust propulsion continuum spectrum gradient arc trajectory horizon
 
 empowerment agency autonomy mastery craft mentorship guidance partnership alliance accord pact covenant trust
 
@@ -244,6 +220,12 @@ stillwave undercurrent ripple eddy whirlpool surge wash spray spume foam
 forefront tip helm prow point edge spear vanguard ascendant
 
 inner core depth marrow heart center essence kernel pith
+
+ghost specter phantom shade wraith spirit apparition revenant whisper haunt
+
+workshop weapon patches liquid transparency tone clarity translucent translucence
+
+stealth shadow silhouette outline trace whisper hush
 """.split()
 
 BRAND_PHRASES = [
@@ -474,11 +456,11 @@ def api_tree():
             main_words = {t["word"] for t in main_terms}
 
             # (c) Wildcards: random picks from the tight top of the branch's
-            #     own ranking — high enough on the list to still feel on-theme,
-            #     skipping anything already in main. Each rebuild reshuffles
-            #     so you get different on-theme surprises per click.
+            #     own ranking — high enough that they're firmly on-theme and
+            #     read as brand-quality, not random everyday nouns. Each
+            #     rebuild reshuffles for fresh surprises within the theme.
             wildcard_pool = [
-                t for t in all_branch_scored[:35]
+                t for t in all_branch_scored[:22]
                 if t["word"] not in main_words
             ]
             n_wildcards = min(3, len(wildcard_pool))
@@ -546,6 +528,7 @@ def candidates_from_words(
     tlds: List[str],
     max_checks: int,
     active_branches: List[str] = None,
+    include_affixes: bool = False,
 ) -> List[Dict[str, str]]:
     """Generate domain candidates from seed words tethered by branch partners.
 
@@ -633,27 +616,28 @@ def candidates_from_words(
                 if w != suf:
                     add(w + suf, f"+{suf}", [w, suf])
 
-    # 8. Thematic affixes — category-specific prefixes/suffixes used sparingly.
-    #    Pull from the categories the user has actively selected from. Picks
-    #    1–2 random affixes per seed each run so they reshuffle on Rerun.
-    branches = active_branches or []
-    pre_pool, suf_pool = [], []
-    for b in branches:
-        pre_pool.extend(THEMATIC_PREFIXES.get(b, []))
-        suf_pool.extend(THEMATIC_SUFFIXES.get(b, []))
-    pre_pool = list(dict.fromkeys(pre_pool))
-    suf_pool = list(dict.fromkeys(suf_pool))
+    # 8. Thematic affixes — category-specific prefixes/suffixes (omni/perma/
+    #    ultra/meta + scope/edge/wave/wright etc.). Gated behind its own
+    #    toggle so the user can opt in when the candidate pool feels thin.
+    if include_affixes:
+        branches = active_branches or []
+        pre_pool, suf_pool = [], []
+        for b in branches:
+            pre_pool.extend(THEMATIC_PREFIXES.get(b, []))
+            suf_pool.extend(THEMATIC_SUFFIXES.get(b, []))
+        pre_pool = list(dict.fromkeys(pre_pool))
+        suf_pool = list(dict.fromkeys(suf_pool))
 
-    if pre_pool:
-        for w in seed_slugs:
-            picks = random.sample(pre_pool, min(2, len(pre_pool)))
-            for pre in picks:
-                add(pre + w, f"{pre}+", [pre, w])
-    if suf_pool:
-        for w in seed_slugs:
-            picks = random.sample(suf_pool, min(2, len(suf_pool)))
-            for suf in picks:
-                add(w + suf, f"+{suf}", [w, suf])
+        if pre_pool:
+            for w in seed_slugs:
+                picks = random.sample(pre_pool, min(2, len(pre_pool)))
+                for pre in picks:
+                    add(pre + w, f"{pre}+", [pre, w])
+        if suf_pool:
+            for w in seed_slugs:
+                picks = random.sample(suf_pool, min(2, len(suf_pool)))
+                for suf in picks:
+                    add(w + suf, f"+{suf}", [w, suf])
 
     # Expand each slug into one row per TLD
     tlds = [t.lstrip(".").lower() for t in tlds if t]
@@ -783,6 +767,7 @@ def api_check():
     partners = body.get("compoundPartners", [])
     active_branches = body.get("activeBranches", [])
     include_studio = bool(body.get("includeStudio", False))
+    include_affixes = bool(body.get("includeAffixes", False))
     include_compounds = bool(body.get("includeCompounds", True))
     tlds = body.get("tlds") or ["com"]
     # Back-compat: old clients may still send includeIo
@@ -806,6 +791,7 @@ def api_check():
     candidates = candidates_from_words(
         words, partners, include_studio, include_compounds, tlds, check_budget,
         active_branches=active_branches,
+        include_affixes=include_affixes,
     )
 
     if not candidates:
