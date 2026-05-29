@@ -118,6 +118,18 @@
       background: #111;
       color: #fff;
     }
+    /* Wildcard pills — random branch-relevant picks injected for variety.
+       Italicized + dotted border so they read as "surprise" suggestions. */
+    .pill.wildcard {
+      border-style: dotted;
+      font-style: italic;
+      background: #fffbe6;
+    }
+    .pill.wildcard.selected {
+      background: #111;
+      color: #fff;
+      border-style: dotted;
+    }
 
     .queue-pill {
       display: inline-block;
@@ -223,9 +235,9 @@
       </div>
       <div class="controls">
         <label><input id="compoundsToggle" type="checkbox" checked> compounds (a+b)</label>
-        <label><input id="studioToggle" type="checkbox"> +studio / +labs / +works / +atelier</label>
+        <label><input id="studioToggle" type="checkbox" checked> +studio / +labs / +works / +atelier</label>
         <label><input id="showTaken" type="checkbox"> show taken too</label>
-        <label>max <input id="maxChecks" type="number" min="5" max="80" value="30"></label>
+        <label>max <input id="maxChecks" type="number" min="5" max="80" value="40"></label>
       </div>
       <div class="controls">
         <span class="small">check:</span>
@@ -273,7 +285,7 @@ function renderTree(tree) {
 
   const branchHtml = tree.branches.map((branch, index) => {
     const words = branch.terms.map(t => t.word);
-    const pills = branch.terms.map(t => pillHtml(t.word, branch.name)).join("");
+    const pills = branch.terms.map(t => pillHtml(t.word, branch.name, t.wildcard)).join("");
     return `
       <details ${index < 3 ? "open" : ""}>
         <summary>
@@ -294,9 +306,11 @@ function renderTree(tree) {
   applySelectedStyling();
 }
 
-function pillHtml(word, branch) {
+function pillHtml(word, branch, wildcard) {
   const branchAttr = branch ? ` data-branch="${escapeHtml(branch)}"` : "";
-  return `<span class="pill" data-word="${escapeHtml(word)}"${branchAttr}>${escapeHtml(word)}</span>`;
+  const cls = wildcard ? "pill wildcard" : "pill";
+  const title = wildcard ? ' title="wildcard — random branch-relevant pick"' : "";
+  return `<span class="${cls}" data-word="${escapeHtml(word)}"${branchAttr}${title}>${escapeHtml(word)}</span>`;
 }
 
 // Find the branch where this word scores highest among its terms.
@@ -351,27 +365,43 @@ function togglePill(word, branch) {
 }
 
 // Pool of partner words from every branch that has at least one selected word.
+// When no branch is active (e.g. user only picked from "your words"), fall back
+// to the top nearest-words list so compounds still have something to pair with.
 function activePartners() {
   if (!lastTree || !lastTree.branches) return [];
   const activeBranches = new Set([...selected.values()].filter(Boolean));
-  if (activeBranches.size === 0) return [];
   const partners = [];
   const seen = new Set();
-  for (const branch of lastTree.branches) {
-    if (!activeBranches.has(branch.name)) continue;
-    for (const term of branch.terms) {
-      if (selected.has(term.word)) continue;
-      if (seen.has(term.word)) continue;
-      partners.push(term.word);
-      seen.add(term.word);
+  if (activeBranches.size > 0) {
+    for (const branch of lastTree.branches) {
+      if (!activeBranches.has(branch.name)) continue;
+      for (const term of branch.terms) {
+        if (selected.has(term.word) || seen.has(term.word)) continue;
+        partners.push(term.word);
+        seen.add(term.word);
+      }
     }
+  }
+  // Always top up from the global nearest-words list so even single seeds with
+  // no branch context get rich pairings.
+  for (const tw of (lastTree.top_words || [])) {
+    if (partners.length >= 30) break;
+    if (selected.has(tw.word) || seen.has(tw.word)) continue;
+    partners.push(tw.word);
+    seen.add(tw.word);
   }
   return partners;
 }
 
 function renderResults(results) {
   if (!results || !results.length) {
-    $("results").innerHTML = `<div class="empty-hint">No available domains. Try more words, turn on suffixes, or +1 to "max".</div>`;
+    $("results").innerHTML = `<div class="empty-hint">
+      Nothing available in this sample. Try one of:<br>
+      &nbsp;&nbsp;• hit <b>Rerun</b> for a fresh batch<br>
+      &nbsp;&nbsp;• click more words in the tree (each one multiplies your options)<br>
+      &nbsp;&nbsp;• check more TLDs (toggles under the buttons: <b>.ai</b>, <b>.studio</b>, <b>.training</b>)<br>
+      &nbsp;&nbsp;• raise <b>max</b> (next to the toggles) from 40 → 60 or 80
+    </div>`;
     return;
   }
 
@@ -399,6 +429,12 @@ function renderResults(results) {
 async function buildTree() {
   $("status").textContent = "Building word tree...";
   $("tree").textContent = "Working...";
+
+  // Rebuilding from a new prompt → the old selections probably don't apply.
+  // Clear the queue and any prior results.
+  selected.clear();
+  renderQueue();
+  $("results").innerHTML = `<div class="empty-hint">No results yet.</div>`;
 
   try {
     const response = await fetch("/api/tree", {
@@ -444,8 +480,12 @@ async function checkDomains() {
     if (!response.ok) throw new Error(data.error || "Unknown error.");
 
     renderResults(data.results);
-    const available = data.results.filter(r => r.available).length;
-    $("status").textContent = `Checked ${data.candidates.length} domain(s). ${available} available.`;
+    const s = data.stats || {};
+    const shown = data.results.filter(r => r.available).length;
+    const pool = s.available_total || shown;
+    const checked = s.checked || data.candidates.length;
+    $("status").textContent =
+      `Showing ${shown} of ${pool} available (checked ${checked}). Hit Rerun for a different sample.`;
   } catch (error) {
     $("status").textContent = "Error: " + error.message;
     $("results").innerHTML = `<div class="error">${escapeHtml(error.message)}</div>`;
