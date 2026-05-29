@@ -53,8 +53,11 @@ def rdap_url_for(domain: str) -> str:
     base = RDAP_REGISTRIES.get(tld, RDAP_BOOTSTRAP)
     return base + domain
 
-MAX_CHECKS_HARD_LIMIT = int(os.getenv("MAX_CHECKS_HARD_LIMIT", "80"))
-DOMAIN_CHECK_WORKERS = int(os.getenv("DOMAIN_CHECK_WORKERS", "8"))
+MAX_CHECKS_HARD_LIMIT = int(os.getenv("MAX_CHECKS_HARD_LIMIT", "180"))
+DOMAIN_CHECK_WORKERS = int(os.getenv("DOMAIN_CHECK_WORKERS", "12"))
+# How many candidates to check per visible result (oversample so we have a deep
+# enough pool of *available* domains to randomly sample from for each rerun).
+OVERSAMPLE_FACTOR = int(os.getenv("OVERSAMPLE_FACTOR", "4"))
 
 STOPWORDS = set("""
 the and for with from this that into onto your our you they them their a an of to in on at by or as is are be being been we create turn new ways things stronger possible raw material something highly refined ai
@@ -89,6 +92,126 @@ scriptorium codex herbarium menagerie aviary apothecary archive observatory vitr
 threshold undertone overtone harmonic cadence tempo throb thrum drone tremor shudder shimmer flicker flutter waver glimmer luster sheen gloss patina verdigris tarnish weather wear
 
 ferment tincture mordant pigment glaze enamel lacquer varnish gilding inlay marquetry intarsia mosaic tessera cabochon intaglio cameo bezel filigree damascene
+
+river ocean sea marsh meadow valley ridge summit glacier tide harbor cove inlet headland bluff isle archipelago lagoon fjord oasis savanna tundra taiga prairie delta estuary canyon gorge ravine plateau highland lowland bayou
+
+storm breeze gust drizzle downpour blizzard hail sleet squall gale calm zephyr tempest monsoon cyclone whirlwind
+
+lantern beacon glow flicker flash spark glimmer shine lustre sheen shimmer halo aurora daybreak nightfall starlight moonlight sunlight firelight torchlight candlelight
+
+chime hum drone peal knell toll melody harmony cadence refrain chant song echo whisper murmur lullaby ballad sonnet hymn
+
+silk velvet linen suede leather wax satin gauze muslin tweed canvas burlap denim cotton wool felt twill brocade
+
+heron hawk owl raven eagle fox otter lynx fawn hare deer stag salmon trout oyster whale dolphin sparrow swan crane finch nightingale crow magpie kingfisher dove hummingbird
+
+vessel vase urn chalice bowl basin jar jug flask vial ampoule retort kettle cauldron carafe decanter pitcher amphora ewer
+
+gateway doorway window threshold hearth alcove niche cloister courtyard balcony parapet cornice gable archway hall chamber room antechamber vestibule foyer
+
+dawn dusk twilight daybreak nightfall hour season era epoch moment instant interval span
+
+drift glide flow spin turn twirl swirl dance wave bend curve arc loop coil
+
+keep vault library cabinet drawer shelf chest trunk locker safe
+
+bloom blossom flourish thrive rest slumber repose dwell linger settle alight
+
+weave thread knot braid lattice mesh web net rope cord twine string ribbon banner pennant
+
+moss lichen fern frond palm vine ivy willow oak maple birch cedar cypress pine spruce juniper laurel olive fig pomegranate
+
+ash dust sand pebble gravel cobble shard fragment grain mote speck flake
+
+ledger journal scroll tablet page ink quill brush palette canvas easel album notebook compendium volume tome anthology
+
+honey beeswax resin amber sap nectar pollen syrup balm myrrh frankincense sandalwood
+
+needle pin spindle bobbin reel spool shuttle thread thimble awl scissors shears
+
+bell carillon harp lute lyre flute reed pipe horn drum cymbal gong tabor
+
+field garden grove orchard vineyard hedge thicket copse bower glade clearing
+
+stone pebble brick tile tile slate shingle thatch beam rafter joist column post pillar
+
+shell husk hull rind peel skin scale feather wing tail fin claw horn antler tusk
+
+vow oath pledge bond covenant accord pact troth banner signet seal token relic emblem
+
+key lock latch hinge bolt clasp buckle button stud nail rivet stitch seam
+
+trail trailhead campsite cabin cottage lodge bungalow boathouse boatyard meadow grove thicket clearing bluff knoll hill mound dune shore beach reef shoal pier dock wharf marina harbor bay gulf landing crossing junction
+
+kitchen pantry larder cellar attic loft parlor study den porch deck patio veranda terrace courtyard yard backyard frontroom commonroom
+
+bread loaf crust crumb butter cheese jam preserve pickle relish broth soup stew brew tea infusion mead cider wine sauce marinade rind zest peel
+
+hand finger palm wrist eye gaze glance vision sight ear voice tongue tooth bone spine sinew nerve marrow
+
+calm peace stillness quiet hush serenity grace ease comfort warmth coolness focus clarity balance steadiness gravity weight
+
+morning daybreak sunrise noon afternoon nightfall midnight evening sundown starlight earlybird earlymorning lateday
+
+journey trek hike path route course passage crossing bridge ford pass gateway compass map atlas itinerary
+
+fire flame ember spark blaze candle wick lamp torch lantern firefly bonfire campfire furnace hearth oven stove
+
+song tune chord note rhythm beat hum echo whisper anthem chant chorus refrain ballad lullaby
+
+house home cabin cottage lodge hut tent pavilion barn stable workshop studio gallery pavilion booth kiosk
+
+hammer chisel awl plane saw drill brush paint glue tape nail bolt rivet thread needle pin clamp ruler tape
+
+wood metal clay paper cloth fabric leather rope cord twine silk wool cotton linen velvet denim hemp jute
+
+tree flower leaf grass bush vine root branch twig bud sprout seedling sapling thicket undergrowth
+
+sun rain snow wind hail cloud thunder lightning rainbow shower drizzle puddle pond
+
+fox owl raven hawk hare deer stag salmon trout bee butterfly moth wren swallow lark robin warbler
+
+bottle jar box crate barrel basket pouch satchel pack pouch knapsack rucksack tote duffel
+
+sail row paddle drift float glide soar dive leap jump climb hike walk wander roam stroll amble ramble
+
+glow gleam shine sparkle luster shimmer brightness warmth coolness clarity vibrancy
+
+maker builder mender tinker cooper smith weaver carver potter wright wheelwright shipwright blacksmith goldsmith silversmith
+
+market bazaar fair festival gathering parade picnic retreat summit assembly meetup workshop residency
+
+chapter page tale story fable legend myth ballad sonnet stanza verse poem essay manuscript
+
+school class lesson study scholar tutor mentor master apprentice journeyman protege fellow
+
+orchestra choir band ensemble quintet quartet trio duet solo overture prelude finale
+
+game play sport race match contest quest puzzle riddle mystery clue trail breadcrumb hint
+
+scent aroma flavor savor touch caress sense feeling impression
+
+lift uplift focus clarity balance harmony radiance vitality
+
+dawn morning twilight evening dusk sundown sunset
+
+oak elm ash maple birch fir spruce pine cedar willow hawthorn hazel rowan
+
+salt sugar honey spice pepper ginger mint sage thyme basil rosemary lavender chamomile
+
+silver gold bronze brass iron tin steel pewter
+
+stream brook river creek pond lake bay shore tide wave
+
+cloud mist haze fog dew frost rime sleet
+
+home garden workshop atelier studio library archive gallery museum theatre
+
+friend host guest stranger neighbor companion fellow comrade ally
+
+dream memory wonder echo trace footprint hint signal beacon
+
+cup mug bowl plate dish saucer pitcher kettle teapot
 """.split()
 
 BRAND_PHRASES = [
@@ -508,8 +631,12 @@ def api_check():
     if not partners:
         partners = words
 
+    # Oversample the candidate pool so we have a chance of finding `max_checks`
+    # available domains (not just any domains). User picks "max=40" → check up
+    # to ~160 candidates → return up to 40 that are actually available.
+    check_budget = min(max_checks * OVERSAMPLE_FACTOR, MAX_CHECKS_HARD_LIMIT)
     candidates = candidates_from_words(
-        words, partners, include_studio, include_compounds, tlds, max_checks
+        words, partners, include_studio, include_compounds, tlds, check_budget
     )
 
     if not candidates:
@@ -521,17 +648,36 @@ def api_check():
     with ThreadPoolExecutor(max_workers=DOMAIN_CHECK_WORKERS) as pool:
         checked_list = list(pool.map(check_domain, domains))
 
-    results = []
     for checked in checked_list:
         checked["source"] = domain_to_source.get(checked["domain"], "")
-        if checked.get("available") or show_taken:
-            results.append(checked)
 
-    results.sort(key=lambda r: (not r.get("available"), r["domain"]))
+    available = [r for r in checked_list if r.get("available")]
+    taken_or_unknown = [r for r in checked_list if not r.get("available")]
+
+    # Random sample down to user's max so each rerun surfaces different ones.
+    if len(available) > max_checks:
+        random.shuffle(available)
+        sampled = available[:max_checks]
+    else:
+        sampled = available
+
+    if show_taken:
+        # When showing taken, also throw in a few non-available for context.
+        extra = max(0, max_checks - len(sampled))
+        if extra and taken_or_unknown:
+            random.shuffle(taken_or_unknown)
+            sampled = sampled + taken_or_unknown[:extra]
+
+    sampled.sort(key=lambda r: (not r.get("available"), r["domain"]))
 
     return jsonify({
         "candidates": candidates,
-        "results": results,
+        "results": sampled,
+        "stats": {
+            "checked": len(checked_list),
+            "available_total": len(available),
+            "shown": len(sampled),
+        },
         "provider": "rdap" if (USE_RDAP or not WHOISXMLAPI_KEY) else "whoisxmlapi"
     })
 
