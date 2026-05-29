@@ -337,15 +337,45 @@ def api_tree():
         branch_out = []
         for name, desc in BRANCHES.items():
             branch_vec = vectors[desc]
-            branch_terms = [
-                {"word": item["word"], "score": cosine(branch_vec, vectors[item["word"]])}
-                for item in top
+
+            # (a) Score every vocab word against THIS branch description,
+            #     independent of the prompt. Gives us each branch's full
+            #     "semantic neighborhood" — needed for wildcards below.
+            all_branch_scored = sorted(
+                [{"word": w, "score": cosine(branch_vec, vectors[w])} for w in vocab],
+                key=lambda x: x["score"],
+                reverse=True,
+            )
+
+            # (b) Main picks: top branch-relevant words from inside the
+            #     top-N prompt-related list — these are the "obvious" matches.
+            main_terms = sorted(
+                [
+                    {"word": item["word"], "score": cosine(branch_vec, vectors[item["word"]])}
+                    for item in top
+                ],
+                key=lambda item: item["score"],
+                reverse=True,
+            )[:17]
+            main_words = {t["word"] for t in main_terms}
+
+            # (c) Wildcards: random picks from positions ~20–80 of the
+            #     branch's own ranking, skipping anything already in main.
+            #     These are "still on-theme but not the obvious top hits" —
+            #     each rebuild gets a fresh set.
+            wildcard_pool = [
+                t for t in all_branch_scored[15:80]
+                if t["word"] not in main_words
             ]
-            branch_terms.sort(key=lambda item: item["score"], reverse=True)
+            n_wildcards = min(3, len(wildcard_pool))
+            wildcards = random.sample(wildcard_pool, n_wildcards) if wildcard_pool else []
+            for w in wildcards:
+                w["wildcard"] = True
+
             branch_out.append({
                 "name": name,
                 "score": cosine(concept_vec, branch_vec),
-                "terms": branch_terms[:20]
+                "terms": main_terms + wildcards,
             })
 
         branch_out.sort(key=lambda item: item["score"], reverse=True)
