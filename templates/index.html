@@ -229,7 +229,7 @@
   <h1>NAME FINDER !!!</h1>
 
   <div class="tabs">
-    <button class="tab active" data-mode="tree">Word tree</button>
+    <button class="tab active" data-mode="tree">Category mode</button>
     <button class="tab" data-mode="quote">Quote mode</button>
     <button class="tab" data-mode="seed">Seed mode</button>
   </div>
@@ -279,7 +279,7 @@
   <section class="grid">
     <div>
       <div class="mode-tree">
-        <h2>Word tree</h2>
+        <h2>Category tree</h2>
         <p class="small">Click a word to add it to the check queue. Click a branch's <em>+ add all</em> to grab everything in it.</p>
         <div id="tree" class="box small">No tree yet. Build one above.</div>
       </div>
@@ -724,6 +724,11 @@ function setMode(mode) {
   });
   document.querySelectorAll(".mode-tree").forEach(el => el.classList.toggle("hidden", mode !== "tree"));
   document.querySelectorAll(".mode-quote").forEach(el => el.classList.toggle("hidden", mode !== "quote"));
+  document.querySelectorAll(".mode-seed").forEach(el => el.classList.toggle("hidden", mode !== "seed"));
+  // Focus the input for the active mode so you can just start typing
+  if (mode === "seed") setTimeout(() => $("seedInput").focus(), 0);
+  if (mode === "quote") setTimeout(() => $("quoteText").focus(), 0);
+  if (mode === "tree") setTimeout(() => $("concepts").focus(), 0);
 }
 
 document.querySelectorAll(".tab").forEach(t => {
