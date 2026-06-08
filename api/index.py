@@ -330,6 +330,32 @@ tide ebb flow surge swell pull current undertow
 mantle plate shell husk peel
 
 orbit ellipse spiral coil twist
+
+cabochon intaglio cameo bezel filigree damascene tessera marquetry intarsia inlay enamel lacquer mordant glaze gilding ingot smelter bellows refractory slag dross lode lodestone fluxstone burnisher sienna ochre vermillion cinnabar lazuli jasper chrysoprase beryl moonstone peridot citrine carnelian aquamarine
+
+girder truss gusset strut purlin lintel jamb fascia soffit mullion transom stanchion bulwark rampart bastion abutment cantilever entablature pediment plinth frieze cornice spandrel
+
+vigor mettle gumption sinew brawn ardor fervor valor gallantry audacity ascendancy primacy dominion hegemony supremacy zeal grit moxie heft
+
+athanor retort still elixir philtre draught balm salve unguent panacea decoction vitriol mercury sulphur regulus quintessence
+
+contraption gadget apparatus mechanism mechanism arsenal armament paraphernalia accoutrements tackle gear rig
+
+bower pergola gazebo conservatory herbarium vivarium hothouse glasshouse parterre pleached topiary ikebana allotment knotgarden
+
+maelstrom surfeit deluge torrent freshet watercourse runnel rivulet ripple slipstream slipway sluice weir freshwater estuary
+
+transponder transducer oscillator harmonic overtone semaphore shibboleth watchword callsign mantra leitmotif
+
+rapier foil scimitar falchion kris kukri halberd glaive pike lance javelin harpoon machete cutlass broadsword claymore katana bowie stiletto dirk poniard
+
+roundhouse alehouse taproom taphouse tavern longhouse council conclave symposium convocation cenacle conventicle sodality brotherhood sisterhood fraternity sorority
+
+tetrahedron polyhedron dihedron octahedron icosahedron dodecahedron gnomon pediment gable frieze abacus entablature pillar plinth
+
+hermitage scriptorium oratory cellar oubliette undercroft crypt vestry ambry sacristy chancel chantry
+
+salient redoubt cresset chevron pinion lintel apse martyr scion paragon
 """.split()
 
 BRAND_PHRASES = [
@@ -412,70 +438,74 @@ BLOCKED_WORDS = {
 
 BRANCHES = {
     "refinery": (
-        "refinery refine polish polished burnish lapidary stone crystal quarry foundry "
-        "raw material craft precision gem facet marble granite pearl alabaster basalt "
-        "distill distillation alembic crucible kiln chisel anvil mineral pigment ore"
+        "refinery foundry lapidary stone crystal gem facet jewel cabochon cameo "
+        "intaglio bezel filigree mosaic tessera enamel lacquer pigment glaze mordant "
+        "marble granite basalt alabaster pearl onyx jade opal ruby sapphire "
+        "alembic crucible kiln anvil bellows ingot ore vein lode lodestone smelter"
     ),
     "scaffold": (
-        "scaffold structure structural framework support beam column trellis lattice "
-        "infrastructure foundation pillar plank rafter joist platform standard method "
-        "blueprint architecture bridge backbone formwork rig grid matrix"
+        "scaffold lattice framework girder truss gusset strut purlin column pillar "
+        "arch vault dome buttress lintel keystone capstone cornerstone span beam "
+        "rafter joist plank fascia parapet bastion rampart stanchion mullion bridge "
+        "platform foundation bulwark abutment cantilever"
     ),
     "superpower": (
-        "superpower advantage capability magic spark force kindling power lift uplift "
-        "courage might strength talent ability charisma leverage edge hidden unlock "
-        "boost charge spark ignite kindle catalyst breakthrough"
+        "superpower vigor mettle sinew valor audacity ascendancy primacy dominion "
+        "supremacy charisma prowess might force kindling spark leverage edge "
+        "advantage talent capability catalyst breakthrough trump card secret weapon"
     ),
     "alchemy": (
-        "alchemy distill transmute infusion brew ferment tincture mordant potion "
-        "concoction blend mix transform translate connect link bridge synthesis "
-        "synapse circuit conduit relay weave glue catalyst emergent flow"
+        "alchemy alembic athanor crucible retort still elixir tincture mordant "
+        "infusion philtre draught balm salve panacea decoction sublimation "
+        "calcination distillation rectification mercury sulphur vitriol pigment "
+        "transmutation synthesis blend essence"
     ),
     "toolbox": (
-        "toolbox tool tools toolkit kit workbench bench workshop maker craft "
-        "hammer chisel awl plane saw drill brush vise clamp ruler lathe jig "
-        "handle wrench screwdriver shelf drawer cabinet stack equipment instrument "
-        "kit playbook template apparatus"
+        "toolbox toolkit instrument apparatus mechanism contraption device gear "
+        "rig kit workbench anvil chisel awl plane saw drill vise clamp lathe "
+        "spindle hammer wrench mallet trowel arsenal armament tackle paraphernalia"
     ),
     "garden": (
-        "garden gardening grow growth cultivate seed seedling sprout bloom blossom "
-        "orchard greenhouse nursery botany horticulture soil root harvest dew rain "
-        "petal stamen pollen pollinate fertile compost prune trellis vine flower "
-        "hedge meadow grove arbor bouquet bud bramble"
+        "garden orchard greenhouse hothouse glasshouse conservatory nursery "
+        "herbarium vivarium bonsai topiary parterre arbor bower pergola gazebo "
+        "trellis pleached espalier hedgerow meadow grove thicket bramble "
+        "rhizome stamen pollen petal blossom bouquet"
     ),
     "current": (
-        "current currents flow flowing energy electricity charge voltage circuit "
-        "pulse wave frequency kinetic dynamo spark surge resonance river stream tide "
-        "ocean ripple eddy waterfall cascade thunder lightning storm wind rain "
-        "vortex whirlpool drift breeze gale tempest"
+        "current undertow tide ebb surge swell maelstrom torrent freshet rivulet "
+        "watercourse runnel sluice weir cascade waterfall whirlpool vortex eddy "
+        "ripple stream brook river delta estuary harbor cove inlet bay "
+        "wave breaker spray spume foam"
     ),
     "signal": (
-        "signal signals transmission broadcast channel antenna beacon frequency "
-        "wavelength tuning resonance pulse rhythm waveform tone hum emission echo "
-        "relay carrier dispatch communicate clarity inner signal undercurrent"
+        "signal transmission broadcast antenna aerial beacon transponder transducer "
+        "oscillator harmonic overtone undertone wavelength frequency resonance "
+        "semaphore shibboleth watchword callsign sigil glyph cipher mantra refrain "
+        "leitmotif tone hum drone pulse"
     ),
     "edge": (
-        "edge blade tip point forefront frontier vanguard helm prow leading sword "
-        "spear arrow dagger sabre weapon warrior sharp acuity precision cutting "
-        "forward first ahead pioneer scout cutting-edge"
+        "edge blade tip point apex vertex forefront frontier vanguard helm prow "
+        "sword spear arrow dagger sabre rapier foil scimitar falchion kris halberd "
+        "glaive lance javelin harpoon machete cutlass claymore katana stiletto "
+        "dirk poniard fringe margin verge brink"
     ),
     "campfire": (
-        "campfire hearth lodge club clubhouse circle gathering supper salon "
-        "fellowship guild member members retreat refuge den fire firepit log "
-        "kindling ember warmth company conversation companions secret society"
+        "campfire hearth bonfire firepit lodge longhouse clubhouse roundhouse "
+        "alehouse taproom tavern den lair refuge sanctuary retreat hermitage "
+        "salon symposium conclave conventicle sodality cenacle fellowship guild "
+        "circle society fraternity sisterhood brotherhood council assembly"
     ),
     "triangle": (
-        "triangle vertex apex peak summit pinnacle zenith point angle edge "
-        "base side pyramid prism spire obelisk crown crest ridge slope wedge "
-        "trinity triad trio tripod trident fulcrum pivot axis compass sextant "
-        "delta nabla pioneer ascendant rising heightened"
+        "triangle vertex apex pinnacle pyramid prism spire obelisk pediment gable "
+        "trinity triad trio tripod trident fulcrum pivot axis gnomon polyhedron "
+        "tetrahedron octahedron dihedron sextant theodolite protractor compass "
+        "wedge crown crest ridge summit zenith peak"
     ),
     "shadowbox": (
-        "shadowbox shadowboxing spar sparring solo practice rehearsal drill "
-        "training preparation imagination vision potential possibility ideation "
-        "sketch draft prototype blueprint gym dojo ring stance footwork "
-        "combination skill mastery craft prowess vigil midnight private "
-        "solitude sanctum garret atelier chamber lair quarters"
+        "shadowbox sparring ring dojo gym arena pit cage mat rehearsal drill "
+        "scrimmage runthrough prototype blueprint draft sketch ideation imagination "
+        "vision prowess mastery technique virtuoso sanctum hermitage garret lair "
+        "scriptorium oratory atelier study chamber alcove vigil"
     ),
 }
 
