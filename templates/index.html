@@ -231,6 +231,7 @@
   <div class="tabs">
     <button class="tab active" data-mode="tree">Word tree</button>
     <button class="tab" data-mode="quote">Quote mode</button>
+    <button class="tab" data-mode="seed">Seed mode</button>
   </div>
 
   <div class="mode-panel mode-tree">
@@ -259,6 +260,20 @@
     </div>
   </div>
 
+  <div class="mode-panel mode-seed hidden">
+    <p>
+      Type a single word (or short phrase) — <em>gesso</em>, <em>triangle</em>,
+      <em>kindling</em>, <em>blue hour</em>. No preset branches; just the words
+      that live closest to yours in the embedding's meaning-space, ranked by
+      similarity. Click any to add to the queue.
+    </p>
+    <input id="seedInput" type="text" placeholder="one word or short phrase" value="gesso" style="width:100%;padding:10px;font-size:18px;border:1px solid #111;background:#fff;color:#111;font-family:'Times New Roman',Times,serif;">
+    <div class="controls" style="margin-top:10px;">
+      <button id="seedBtn">Find associations</button>
+      <label>show <input id="seedN" type="number" min="20" max="200" value="80"></label>
+    </div>
+  </div>
+
   <p id="status" class="small">Ready.</p>
 
   <section class="grid">
@@ -272,6 +287,11 @@
         <h2>Words in text</h2>
         <p class="small">Click a word to add it to the queue. Re-extract any time.</p>
         <div id="quoteWords" class="box small">Paste text above and hit <b>Extract words</b>.</div>
+      </div>
+      <div class="mode-seed hidden">
+        <h2>Nearest associations</h2>
+        <p class="small">Ranked by cosine similarity to your seed. Closer-to-top = more semantically related.</p>
+        <div id="seedTree" class="box small">Type a seed word above and hit <b>Find associations</b>.</div>
       </div>
     </div>
 
@@ -312,6 +332,7 @@ const $ = id => document.getElementById(id);
 // word -> branch name the user picked it from (null if picked from "nearest words")
 const selected = new Map();
 let lastTree = null;
+let lastSeedTree = null;  // { seed, neighbors } from /api/seed-tree
 
 function escapeHtml(s) {
   return s.replace(/[&<>"']/g, c => ({
@@ -415,32 +436,43 @@ function togglePill(word, branch) {
   renderQueue();
 }
 
-// Pool of partner words from every branch that has at least one selected word.
-// When no branch is active (e.g. user only picked from "your words"), fall back
-// to the top nearest-words list so compounds still have something to pair with.
+// Pool of partner words for compounds. Pulls from (in priority order):
+//   1. The terms of branches the user picked seeds from (tree mode)
+//   2. The top "nearest words" from the last tree build
+//   3. The neighbors from the last seed-mode lookup
+// This keeps compounds tethered to whichever mode the user was working in.
 function activePartners() {
-  if (!lastTree || !lastTree.branches) return [];
-  const activeBranches = new Set([...selected.values()].filter(Boolean));
   const partners = [];
   const seen = new Set();
-  if (activeBranches.size > 0) {
-    for (const branch of lastTree.branches) {
-      if (!activeBranches.has(branch.name)) continue;
-      for (const term of branch.terms) {
-        if (selected.has(term.word) || seen.has(term.word)) continue;
-        partners.push(term.word);
-        seen.add(term.word);
+  const push = w => {
+    if (!w || selected.has(w) || seen.has(w)) return;
+    partners.push(w);
+    seen.add(w);
+  };
+
+  if (lastTree && lastTree.branches) {
+    const activeBranches = new Set([...selected.values()].filter(Boolean));
+    if (activeBranches.size > 0) {
+      for (const branch of lastTree.branches) {
+        if (!activeBranches.has(branch.name)) continue;
+        for (const term of branch.terms) push(term.word);
       }
     }
+    for (const tw of (lastTree.top_words || [])) {
+      if (partners.length >= 30) break;
+      push(tw.word);
+    }
   }
-  // Always top up from the global nearest-words list so even single seeds with
-  // no branch context get rich pairings.
-  for (const tw of (lastTree.top_words || [])) {
-    if (partners.length >= 30) break;
-    if (selected.has(tw.word) || seen.has(tw.word)) continue;
-    partners.push(tw.word);
-    seen.add(tw.word);
+
+  // Seed-mode neighbors are excellent compound partners — they're already
+  // semantically clustered around the user's seed word.
+  if (lastSeedTree && lastSeedTree.neighbors) {
+    for (const n of lastSeedTree.neighbors) {
+      if (partners.length >= 40) break;
+      push(n.word);
+    }
   }
+
   return partners;
 }
 
@@ -587,6 +619,62 @@ function renderQuoteWords(words) {
     .join("");
   applySelectedStyling();
 }
+
+// --- Seed mode ----------------------------------------------------------
+async function findAssociations() {
+  const seed = ($("seedInput").value || "").trim();
+  if (!seed) {
+    $("status").textContent = "Type a seed word first.";
+    return;
+  }
+  $("status").textContent = `Finding associations for "${seed}"…`;
+  $("seedTree").textContent = "Working...";
+
+  // Reset state so old selections don't bleed across seeds
+  selected.clear();
+  renderQueue();
+  $("results").innerHTML = `<div class="empty-hint">No results yet.</div>`;
+
+  try {
+    const response = await fetch("/api/seed-tree", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ seed, n: Number($("seedN").value) }),
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error || "Unknown error.");
+
+    lastSeedTree = data;
+    renderSeedTree(data);
+    $("status").textContent = `Found ${data.neighbors.length} associations for "${seed}". Click any to add to the queue.`;
+  } catch (err) {
+    $("status").textContent = "Error: " + err.message;
+    $("seedTree").textContent = err.message;
+  }
+}
+
+function renderSeedTree(data) {
+  if (!data || !data.neighbors || !data.neighbors.length) {
+    $("seedTree").textContent = "No associations returned.";
+    return;
+  }
+  // Seed itself as a featured pill at top
+  const seedPill = `<div style="margin-bottom:10px;"><span class="small">seed:</span> <span class="pill" data-word="${escapeHtml(data.seed)}">${escapeHtml(data.seed)}</span></div>`;
+  const pills = data.neighbors
+    .map(n => `<span class="pill" data-word="${escapeHtml(n.word)}" title="similarity ${n.score.toFixed(3)}">${escapeHtml(n.word)}</span>`)
+    .join("");
+  $("seedTree").innerHTML = seedPill + pills;
+  applySelectedStyling();
+}
+
+$("seedBtn").addEventListener("click", findAssociations);
+$("seedInput").addEventListener("keydown", e => {
+  if (e.key === "Enter") { e.preventDefault(); findAssociations(); }
+});
+$("seedTree").addEventListener("click", event => {
+  const pill = event.target.closest(".pill[data-word]");
+  if (pill) togglePill(pill.dataset.word, null);
+});
 
 // --- Mode switching -----------------------------------------------------
 function setMode(mode) {
