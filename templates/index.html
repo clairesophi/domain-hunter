@@ -236,7 +236,6 @@
       <div class="controls">
         <label title="Pair seeds with branch partners — pure noun+noun compounds like trinity+vigil → trinityvigil"><input id="compoundsToggle" type="checkbox" checked> compounds (a+b)</label>
         <label title="Per-branch prefixes (omni-, perma-, ultra-, meta-, tri-) and suffixes (-scope, -edge, -wave, -peak, -vertex). Use sparingly when queue feels thin."><input id="affixToggle" type="checkbox"> theme affix (omni+a, a+scope)</label>
-        <label><input id="showTaken" type="checkbox"> show taken too</label>
         <label>max <input id="maxChecks" type="number" min="5" max="80" value="40"></label>
       </div>
       <div class="controls">
@@ -406,24 +405,14 @@ function renderResults(results) {
   }
 
   const available = results.filter(r => r.available);
-  const taken = results.filter(r => !r.available);
-
-  let html = "";
-  for (const r of available) {
-    const link = `https://www.namecheap.com/domains/registration/results/?domain=${encodeURIComponent(r.domain)}`;
-    html += `<a class="result-available" href="${link}" target="_blank" rel="noopener">${escapeHtml(r.domain)}</a>`;
-  }
-  if (taken.length) {
-    html += `<div class="taken-group"><div class="small">taken / unknown</div>`;
-    for (const r of taken) {
-      html += `<span class="result-taken">${escapeHtml(r.domain)}</span>`;
-    }
-    html += `</div>`;
-  }
   if (!available.length) {
-    html = `<div class="empty-hint">No available domains in this sample. Hit Rerun for a fresh batch.</div>` + html;
+    $("results").innerHTML = `<div class="empty-hint">No available domains in this sample. Hit Rerun for a fresh batch.</div>`;
+    return;
   }
-  $("results").innerHTML = html;
+  $("results").innerHTML = available.map(r => {
+    const link = `https://www.namecheap.com/domains/registration/results/?domain=${encodeURIComponent(r.domain)}`;
+    return `<a class="result-available" href="${link}" target="_blank" rel="noopener">${escapeHtml(r.domain)}</a>`;
+  }).join("");
 }
 
 async function buildTree() {
@@ -474,7 +463,7 @@ async function checkDomains() {
         includeAffixes: $("affixToggle").checked,
         includeCompounds: $("compoundsToggle").checked,
         tlds: [...document.querySelectorAll(".tld:checked")].map(el => el.value),
-        showTaken: $("showTaken").checked,
+        showTaken: false,
         maxChecks: Number($("maxChecks").value)
       })
     });
