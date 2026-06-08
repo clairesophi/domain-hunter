@@ -15,6 +15,12 @@ try:
 except Exception:
     OpenAI = None
 
+try:
+    import dns.resolver as _dns_resolver
+    DNS_AVAILABLE = True
+except Exception:
+    DNS_AVAILABLE = False
+
 TEMPLATE_DIR = os.path.join(os.path.dirname(__file__), "..", "templates")
 app = Flask(__name__, template_folder=TEMPLATE_DIR)
 
@@ -557,6 +563,48 @@ def index():
     return render_template("index.html")
 
 
+@app.route("/api/seed-tree", methods=["POST"])
+def api_seed_tree():
+    """Pure embedding-neighbor mode: one input word/phrase → flat list of
+    semantically-closest vocab words, no preset branches.
+    """
+    body = request.get_json(force=True)
+    seed = (body.get("seed") or "").strip()
+    n = int(body.get("n", 80))
+
+    if not seed:
+        return jsonify({"error": "Type a word or short phrase first."}), 400
+
+    try:
+        phrase_words = []
+        for phrase in BRAND_PHRASES:
+            phrase_words.extend(tokenize(phrase))
+            phrase_words.append(slugify(phrase))
+
+        vocab = list(dict.fromkeys([*BASE_VOCAB, *phrase_words]))
+        vocab = [w for w in vocab if 3 <= len(w) <= 18 and w.lower() != seed.lower()]
+
+        to_embed = [seed, *vocab]
+        vectors = embed_batch(to_embed)
+        seed_vec = vectors.get(seed)
+        if seed_vec is None:
+            return jsonify({"error": "Could not embed seed."}), 500
+
+        scored = [
+            {"word": w, "score": cosine(seed_vec, vectors[w])}
+            for w in vocab if w in vectors
+        ]
+        scored.sort(key=lambda x: x["score"], reverse=True)
+
+        return jsonify({
+            "seed": seed,
+            "neighbors": scored[:n],
+        })
+
+    except Exception as exc:
+        return jsonify({"error": str(exc)}), 500
+
+
 @app.route("/api/tree", methods=["POST"])
 def api_tree():
     body = request.get_json(force=True)
@@ -815,18 +863,45 @@ def candidates_from_words(
 
 def check_domain_dns(domain: str) -> Dict[str, Any]:
     """Heuristic fallback for TLDs without reliable public RDAP (e.g. .ai).
-    Resolves taken if DNS resolves, available if NXDOMAIN.
+
+    Checks NS records first — registered-but-parked domains almost always
+    have nameservers set by the registrar even when no A record points at
+    a live host. Falls back to A-record (gethostbyname) only if NS lookup
+    is unavailable. This stops `parked-registered.ai` from being mis-flagged
+    as available just because nobody has set up a website on it yet.
     """
+    if DNS_AVAILABLE:
+        try:
+            resolver = _dns_resolver.Resolver()
+            resolver.timeout = 4
+            resolver.lifetime = 6
+            try:
+                answers = resolver.resolve(domain, "NS")
+                if len(answers) > 0:
+                    return {"domain": domain, "status": "taken", "available": False,
+                            "reason": "dns: NS records present (registered)"}
+            except _dns_resolver.NXDOMAIN:
+                return {"domain": domain, "status": "available", "available": True,
+                        "reason": "dns: NXDOMAIN (not in registry)"}
+            except _dns_resolver.NoAnswer:
+                # No NS but domain exists — fall through to A check
+                pass
+            except _dns_resolver.LifetimeTimeout:
+                return {"domain": domain, "status": "unknown", "available": False,
+                        "reason": "dns: timeout"}
+        except Exception:
+            # Resolver setup failed — fall through to socket fallback below
+            pass
+
+    # Last-resort fallback (worse signal — flag uncertainty in `reason`)
     try:
         socket.setdefaulttimeout(6)
         socket.gethostbyname(domain)
         return {"domain": domain, "status": "taken", "available": False,
-                "reason": "dns lookup (best effort)"}
+                "reason": "dns: A record (best effort)"}
     except socket.gaierror:
-        # NXDOMAIN or no A record. Most registered domains have at least an A
-        # record; flag as available with caveat.
         return {"domain": domain, "status": "available", "available": True,
-                "reason": "dns lookup (best effort — verify manually)"}
+                "reason": "dns: no A record (best effort — verify manually)"}
     except Exception as exc:
         return {"domain": domain, "status": "unknown", "available": False, "reason": str(exc)}
 
