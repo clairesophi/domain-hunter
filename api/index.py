@@ -563,14 +563,47 @@ def index():
     return render_template("index.html")
 
 
+def _pick_diverse_heads(candidates, vectors, k):
+    """Greedy max-min selection: pick k items so each new one is as
+    distinct as possible from those already picked. Gives a small set of
+    'axis' words for branch heads instead of clones of each other.
+    """
+    if not candidates:
+        return []
+    picked = [candidates[0]]
+    pool = candidates[1:]
+    while len(picked) < k and pool:
+        best_idx, best_dist = 0, -2.0
+        for i, c in enumerate(pool):
+            cvec = vectors[c["word"]]
+            # Distance from c to the closest already-picked head (lower sim = farther)
+            closest = max(cosine(cvec, vectors[p["word"]]) for p in picked)
+            dist = 1 - closest
+            if dist > best_dist:
+                best_dist = dist
+                best_idx = i
+        picked.append(pool.pop(best_idx))
+    return picked
+
+
 @app.route("/api/seed-tree", methods=["POST"])
 def api_seed_tree():
-    """Pure embedding-neighbor mode: one input word/phrase → flat list of
-    semantically-closest vocab words, no preset branches.
+    """Builds a tree from one input word — branches and their terms are all
+    derived from embedding proximity (no preset categories).
+
+    Algorithm:
+      1. Embed the seed + all vocab.
+      2. Rank all vocab by cosine similarity to the seed → top neighbors.
+      3. From the top neighbors, greedily pick K branch heads that are
+         maximally distinct from each other (so branches feel different).
+      4. For each head, score the seed's top neighbors against the head and
+         take that head's top terms.
     """
     body = request.get_json(force=True)
     seed = (body.get("seed") or "").strip()
-    n = int(body.get("n", 80))
+    n_branches = int(body.get("nBranches", 6))
+    terms_per_branch = int(body.get("termsPerBranch", 14))
+    top_n = int(body.get("topN", 80))
 
     if not seed:
         return jsonify({"error": "Type a word or short phrase first."}), 400
@@ -590,15 +623,40 @@ def api_seed_tree():
         if seed_vec is None:
             return jsonify({"error": "Could not embed seed."}), 500
 
-        scored = [
-            {"word": w, "score": cosine(seed_vec, vectors[w])}
-            for w in vocab if w in vectors
-        ]
-        scored.sort(key=lambda x: x["score"], reverse=True)
+        # 1+2. Score all vocab against the seed
+        scored = sorted(
+            [{"word": w, "score": cosine(seed_vec, vectors[w])}
+             for w in vocab if w in vectors],
+            key=lambda x: x["score"], reverse=True,
+        )
+        top_neighbors = scored[:top_n]
+
+        # 3. Diverse branch heads from the closest ~30 neighbors
+        heads = _pick_diverse_heads(top_neighbors[:30], vectors, n_branches)
+
+        # 4. Each head pulls its own top terms from the seed's neighborhood
+        head_words = {h["word"] for h in heads}
+        branches = []
+        for head in heads:
+            head_vec = vectors[head["word"]]
+            head_terms = sorted(
+                [{"word": item["word"],
+                  "score": cosine(head_vec, vectors[item["word"]])}
+                 for item in top_neighbors
+                 if item["word"] != head["word"] and item["word"] not in head_words],
+                key=lambda x: x["score"], reverse=True,
+            )[:terms_per_branch]
+            branches.append({
+                "name": head["word"],
+                "score": head["score"],
+                "terms": head_terms,
+            })
 
         return jsonify({
             "seed": seed,
-            "neighbors": scored[:n],
+            "branches": branches,
+            "top_words": top_neighbors,
+            "user_words": [seed],
         })
 
     except Exception as exc:
