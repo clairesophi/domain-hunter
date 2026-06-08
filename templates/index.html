@@ -627,10 +627,10 @@ async function findAssociations() {
     $("status").textContent = "Type a seed word first.";
     return;
   }
-  $("status").textContent = `Finding associations for "${seed}"…`;
+  $("status").textContent = `Building tree from "${seed}"…`;
   $("seedTree").textContent = "Working...";
 
-  // Reset state so old selections don't bleed across seeds
+  // Fresh start so old selections don't bleed across seeds
   selected.clear();
   renderQueue();
   $("results").innerHTML = `<div class="empty-hint">No results yet.</div>`;
@@ -639,31 +639,58 @@ async function findAssociations() {
     const response = await fetch("/api/seed-tree", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ seed, n: Number($("seedN").value) }),
+      body: JSON.stringify({
+        seed,
+        nBranches: 6,
+        termsPerBranch: 14,
+        topN: Number($("seedN").value),
+      }),
     });
     const data = await response.json();
     if (!response.ok) throw new Error(data.error || "Unknown error.");
 
     lastSeedTree = data;
-    renderSeedTree(data);
-    $("status").textContent = `Found ${data.neighbors.length} associations for "${seed}". Click any to add to the queue.`;
+    lastTree = data;  // seed-tree shape matches /api/tree → reuse the renderer
+    renderTreeInto(data, "seedTree");
+    $("status").textContent =
+      `Tree built from "${seed}" — ${data.branches.length} branches, ${data.top_words.length} associations. Click any word to add to the queue.`;
   } catch (err) {
     $("status").textContent = "Error: " + err.message;
     $("seedTree").textContent = err.message;
   }
 }
 
-function renderSeedTree(data) {
-  if (!data || !data.neighbors || !data.neighbors.length) {
-    $("seedTree").textContent = "No associations returned.";
+// Render a tree-shaped response into a target DOM element (so seed mode and
+// regular tree mode can share the same branch/pill markup).
+function renderTreeInto(tree, targetId) {
+  const target = $(targetId);
+  if (!tree || !tree.branches) {
+    target.textContent = "No tree returned.";
     return;
   }
-  // Seed itself as a featured pill at top
-  const seedPill = `<div style="margin-bottom:10px;"><span class="small">seed:</span> <span class="pill" data-word="${escapeHtml(data.seed)}">${escapeHtml(data.seed)}</span></div>`;
-  const pills = data.neighbors
-    .map(n => `<span class="pill" data-word="${escapeHtml(n.word)}" title="similarity ${n.score.toFixed(3)}">${escapeHtml(n.word)}</span>`)
-    .join("");
-  $("seedTree").innerHTML = seedPill + pills;
+  const branchHtml = tree.branches.map((branch, index) => {
+    const words = branch.terms.map(t => t.word);
+    const pills = branch.terms.map(t => pillHtml(t.word, branch.name, t.wildcard)).join("");
+    return `
+      <details ${index < 3 ? "open" : ""}>
+        <summary>
+          ${escapeHtml(branch.name)}
+          <span class="small">score ${Number(branch.score).toFixed(3)}</span>
+          <span class="branch-add" data-branch="${escapeHtml(branch.name)}" data-words='${JSON.stringify(words)}'>+ add all</span>
+        </summary>
+        <div>${pills}</div>
+      </details>`;
+  }).join("");
+
+  const topPills = (tree.top_words || []).slice(0, 60)
+    .map(t => pillHtml(t.word, "")).join("");
+
+  // Featured "seed" pill at top when in seed mode
+  const seedPill = tree.seed
+    ? `<div style="margin-bottom:12px;"><span class="small">seed:</span> <span class="pill" data-word="${escapeHtml(tree.seed)}">${escapeHtml(tree.seed)}</span></div>`
+    : "";
+
+  target.innerHTML = seedPill + branchHtml + `<h3>nearest associations</h3><div>${topPills}</div>`;
   applySelectedStyling();
 }
 
@@ -671,9 +698,23 @@ $("seedBtn").addEventListener("click", findAssociations);
 $("seedInput").addEventListener("keydown", e => {
   if (e.key === "Enter") { e.preventDefault(); findAssociations(); }
 });
+// Same delegation as the regular tree: handle "+ add all" links and pills,
+// with the branch context attached so compounds tether to the right neighborhood.
 $("seedTree").addEventListener("click", event => {
+  const addAll = event.target.closest(".branch-add");
+  if (addAll) {
+    event.preventDefault();
+    event.stopPropagation();
+    const branch = addAll.dataset.branch || null;
+    JSON.parse(addAll.dataset.words).forEach(w => {
+      if (!selected.has(w)) selected.set(w, branch);
+    });
+    applySelectedStyling();
+    renderQueue();
+    return;
+  }
   const pill = event.target.closest(".pill[data-word]");
-  if (pill) togglePill(pill.dataset.word, null);
+  if (pill) togglePill(pill.dataset.word, pill.dataset.branch || null);
 });
 
 // --- Mode switching -----------------------------------------------------
