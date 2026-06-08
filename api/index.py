@@ -240,6 +240,96 @@ vigil sanctum garret lair hideout cell chamber study quarters keep
 skill mastery craft technique virtuoso prowess fluency precision discipline talent
 
 troika threefold tripletime threepoint
+
+nova supernova eclipse comet meteor orbit satellite constellation galaxy nebula pulsar quasar planet solstice equinox nadir cosmos void cluster cluster
+
+vein stratum sediment volcanic magma lava geode fossil fault outcrop mantle crust core mineral
+
+column pillar arch vault dome bridge frame pier buttress lintel capstone keystone cornerstone span nave chapel sanctuary cloister
+
+sphere cube helix spiral coil loop nexus matrix vector node focal lens curve arc orbit
+
+oracle augur omen sage seer prophet auspice rite ritual ceremony
+
+talisman amulet relic emblem token sigil rune glyph cipher signet seal mark stamp brand
+
+forum agora plaza court terrace promenade gallery passage corridor avenue
+
+blaze flux ascent descent rise plunge plummet leap bound stride
+
+mark insignia standard pennant banner ensign
+
+scholar mentor master sage scribe chronicler author bard
+
+pulse throb beat thrum quiver hum drone tone
+
+beam ray glow shine sheen glimmer sparkle gleam radiance lustre
+
+threshold gateway portal entry doorway archway
+
+keeper warden steward guide envoy ambassador courier herald
+
+post relay outpost waypoint waystation milestone marker boundary
+
+junction crossroad meeting intersection convergence confluence
+
+field plain prairie steppe savanna heath moor fen marsh
+
+isle islet skerry shore reef shoal headland promontory cape
+
+archive ledger codex tome compendium chronicle volume folio
+
+basin chalice vessel flask phial ampule beaker carafe ewer
+
+cipher script lexicon glossary grammar parlance idiom
+
+helm prow stern keel mast rudder sail rigging tiller
+
+orbit halo corona crown aureole
+
+flame ember spark cinder kindling tinder fuel touchwood
+
+sparkle shimmer shine glow gleam flash flicker glint
+
+wave ripple eddy whirlpool current undertow surge swell crest trough
+
+mesh web lattice net grid weave warp weft
+
+axis pivot fulcrum hinge node nexus joint
+
+chord note pitch tone scale octave interval cadence refrain hymn anthem
+
+trail path road route lane way passage course
+
+map atlas compass chart almanac itinerary record
+
+mantle cloak shroud veil mask hood drape
+
+token charm relic emblem amulet
+
+dial gauge meter index marker indicator
+
+prism crystal facet bevel jewel gem stone
+
+print stamp imprint impression mark trace track footprint
+
+cell chamber alcove niche recess bay nook
+
+claim stake banner flag mark seal
+
+basecamp camp foothold anchor mooring stake
+
+stage platform dais riser tier
+
+altar shrine relic sanctum vault
+
+quill ink page chapter verse stanza folio leaf
+
+tide ebb flow surge swell pull current undertow
+
+mantle plate shell husk peel
+
+orbit ellipse spiral coil twist
 """.split()
 
 BRAND_PHRASES = [
