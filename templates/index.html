@@ -234,9 +234,8 @@
         <button id="clearBtn" disabled>Clear queue</button>
       </div>
       <div class="controls">
-        <label title="Pair seeds with each other and with branch partners (gem + facet → gemfacet)"><input id="compoundsToggle" type="checkbox" checked> compounds (a+b)</label>
-        <label title="Adds brand-style endings: +studio, +labs, +works, +atelier, +foundry, +guild, +salon, +circle…"><input id="studioToggle" type="checkbox" checked> studio expander mode</label>
-        <label title="Per-branch prefixes (omni-, perma-, ultra-, meta-) and suffixes (-scope, -edge, -wave, -wright). Helpful when your queue is thin."><input id="affixToggle" type="checkbox"> word expander mode</label>
+        <label title="Pair seeds with branch partners — pure noun+noun compounds like trinity+vigil → trinityvigil"><input id="compoundsToggle" type="checkbox" checked> compounds (a+b)</label>
+        <label title="Per-branch prefixes (omni-, perma-, ultra-, meta-, tri-) and suffixes (-scope, -edge, -wave, -peak, -vertex). Use sparingly when queue feels thin."><input id="affixToggle" type="checkbox"> theme affix (omni+a, a+scope)</label>
         <label><input id="showTaken" type="checkbox"> show taken too</label>
         <label>max <input id="maxChecks" type="number" min="5" max="80" value="40"></label>
       </div>
@@ -471,7 +470,7 @@ async function checkDomains() {
         words: [...selected.keys()],
         compoundPartners: activePartners(),
         activeBranches: [...new Set([...selected.values()].filter(Boolean))],
-        includeStudio: $("studioToggle").checked,
+        includeStudio: false,
         includeAffixes: $("affixToggle").checked,
         includeCompounds: $("compoundsToggle").checked,
         tlds: [...document.querySelectorAll(".tld:checked")].map(el => el.value),
