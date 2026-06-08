@@ -226,6 +226,20 @@ ghost specter phantom shade wraith spirit apparition revenant whisper haunt
 workshop weapon patches liquid transparency tone clarity translucent translucence
 
 stealth shadow silhouette outline trace whisper hush
+
+triangle vertex apex peak summit pinnacle zenith pyramid prism spire obelisk crown crest ridge slope wedge trinity triad trio tripod trident fulcrum pivot axis sextant theodolite protractor delta nabla angle point base side hypotenuse pioneer ascendant rising heightened
+
+shadowbox shadowboxing spar sparring jab hook cross uppercut combo combination stance footwork guard ring dojo gym corner round arena pit cage mat
+
+rehearse rehearsal drill practice prep warmup scrimmage runthrough preview prelude
+
+potential possibility imagination vision ideation sketch draft prototype blueprint idea concept notion glimpse conjure summon invent devise render fashion fabricate
+
+vigil sanctum garret lair hideout cell chamber study quarters keep
+
+skill mastery craft technique virtuoso prowess fluency precision discipline talent
+
+troika threefold tripletime threepoint
 """.split()
 
 BRAND_PHRASES = [
@@ -248,14 +262,20 @@ BRAND_PHRASES = [
     "The Campfire", "Supper Club", "Inner Signal", "Secret Weapon",
     "Halt and Catch Fire", "Alter Ego", "Inner Voice", "Signal to Noise",
     "Tip of the Sword", "Leading Edge", "White Glove", "Top of the Game",
-    "First Impression", "Secret Society"
+    "First Impression", "Secret Society",
+    # From the shadowbox brief — the "private power room for solo creatives" theme
+    "Trinity", "Shadowbox", "The Vigil", "Sanctum", "Sparring Partner",
+    "Pure Potential", "Powerful Room", "Building Worlds", "Solo Practice",
+    "Dry Run", "Run Through", "Prelude", "Blueprint", "Prototype"
 ]
 
-PRIMARY_SUFFIXES = ["works", "studio", "labs", "lab", "studios"]
-# Evocative, not SaaS-y. Avoid "tools/systems/platform/engine/method" which read tech-y.
+# Brand-style endings that read like company/product names (Stripe, Square,
+# Notion, Substack) rather than design-studio names ("X Works", "X Labs",
+# "X Atelier"). Short, concrete, place- or object-feeling.
+PRIMARY_SUFFIXES = ["co", "post", "hub", "house"]
 SECONDARY_SUFFIXES = [
-    "foundry", "atelier", "practice", "office", "house", "school",
-    "society", "guild", "circle", "salon", "room", "table", "group", "co"
+    "base", "port", "station", "lane", "point", "harbor",
+    "junction", "depot", "field", "yard", "hall", "gate",
 ]
 SUFFIXES = PRIMARY_SUFFIXES + SECONDARY_SUFFIXES
 
@@ -273,6 +293,8 @@ THEMATIC_PREFIXES = {
     "signal":     ["meta", "omni", "hyper", "trans"],
     "edge":       ["ultra", "hyper", "omni", "supra"],
     "campfire":   ["ever", "neo", "pan", "omni"],
+    "triangle":   ["tri", "neo", "pan", "meta"],
+    "shadowbox":  ["solo", "shadow", "pre", "dry"],
 }
 THEMATIC_SUFFIXES = {
     "refinery":   ["scope", "smith", "wright"],
@@ -285,6 +307,8 @@ THEMATIC_SUFFIXES = {
     "signal":     ["scope", "wave", "tone", "beacon"],
     "edge":       ["edge", "scope", "force", "tip"],
     "campfire":   ["house", "club", "lodge", "salon", "circle"],
+    "triangle":   ["peak", "apex", "point", "vertex", "ridge"],
+    "shadowbox":  ["ring", "round", "vigil", "room", "stance"],
 }
 
 # Words we don't want to surface in generated names — too tech-y or generic for
@@ -349,6 +373,19 @@ BRANCHES = {
         "campfire hearth lodge club clubhouse circle gathering supper salon "
         "fellowship guild member members retreat refuge den fire firepit log "
         "kindling ember warmth company conversation companions secret society"
+    ),
+    "triangle": (
+        "triangle vertex apex peak summit pinnacle zenith point angle edge "
+        "base side pyramid prism spire obelisk crown crest ridge slope wedge "
+        "trinity triad trio tripod trident fulcrum pivot axis compass sextant "
+        "delta nabla pioneer ascendant rising heightened"
+    ),
+    "shadowbox": (
+        "shadowbox shadowboxing spar sparring solo practice rehearsal drill "
+        "training preparation imagination vision potential possibility ideation "
+        "sketch draft prototype blueprint gym dojo ring stance footwork "
+        "combination skill mastery craft prowess vigil midnight private "
+        "solitude sanctum garret atelier chamber lair quarters"
     ),
 }
 
@@ -578,18 +615,17 @@ def candidates_from_words(
     def fuses(a: str, b: str) -> bool:
         return a == b or a in b or b in a
 
-    # 1. Seeds themselves (always single concepts)
+    # Pure-noun generation: every candidate is either ONE real noun (a seed
+    # standalone) or TWO real nouns concatenated (a compound). No synthetic
+    # suffixes like +co / +studio / +hub — those read studio-y and drift away
+    # from real product names like Notion, Linear, Stripe.
+
+    # 1. Seeds themselves — one-word product names (Trinity, Vigil, Apex)
     for w in seed_slugs:
         add(w, "seed", [w])
 
-    # 2. Seed + primary suffix (gem + works → gemworks) — 2 concepts
-    if include_studio:
-        for w in seed_slugs:
-            for suf in PRIMARY_SUFFIXES:
-                if w != suf:
-                    add(w + suf, f"+{suf}", [w, suf])
-
-    # 3. Seed × partner — both orders, interleaved (gemfacet, facetgem) — 2 concepts
+    # 2. Seed × partner — two-word compounds, both real branch-relevant nouns
+    #    (trinity + vigil → trinityvigil, apex + ridge → apexridge)
     if include_compounds:
         for partner in partner_slugs:
             for seed in seed_slugs:
@@ -598,32 +634,20 @@ def candidates_from_words(
                 add(seed + partner, f"{seed} + {partner}", [seed, partner])
                 add(partner + seed, f"{partner} + {seed}", [partner, seed])
 
-    # 4. Seed × seed (when user picked multiple seeds) — 2 concepts
+    # 3. Seed × seed (when user picked multiple seeds)
     if include_compounds and len(seed_slugs) > 1:
         for first, second in itertools.permutations(seed_slugs, 2):
             if fuses(first, second):
                 continue
             add(first + second, "compound", [first, second])
 
-    # 5. Partner standalones (top ~10) — surfaces strong branch words alone
-    for partner in partner_slugs[:10]:
-        add(partner, "branch context", [partner])
+    # 4. Partner standalones — one-word product names pulled from the same
+    #    branch the user is in (you queued "shadowbox" → surfaces vigil, sanctum)
+    if include_compounds:
+        for partner in partner_slugs[:14]:
+            add(partner, "branch context", [partner])
 
-    # 6. Partner + primary suffix (facetworks, multifacetstudio) — 2 concepts
-    if include_studio:
-        for partner in partner_slugs[:10]:
-            for suf in PRIMARY_SUFFIXES:
-                if partner != suf:
-                    add(partner + suf, f"{partner}+{suf}", [partner, suf])
-
-    # 7. Seed + secondary suffix (atelier, foundry, house, salon, …) — 2 concepts
-    if include_studio:
-        for w in seed_slugs:
-            for suf in SECONDARY_SUFFIXES:
-                if w != suf:
-                    add(w + suf, f"+{suf}", [w, suf])
-
-    # 8. Thematic affixes — category-specific prefixes/suffixes (omni/perma/
+    # 5. Thematic affixes — category-specific prefixes/suffixes (omni/perma/
     #    ultra/meta + scope/edge/wave/wright etc.). Gated behind its own
     #    toggle so the user can opt in when the candidate pool feels thin.
     if include_affixes:
